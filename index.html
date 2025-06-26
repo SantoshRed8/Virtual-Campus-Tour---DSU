@@ -21,13 +21,53 @@
             width: 100vw;
             height: 100vh;
         }
+
+        .music-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #1e90ff, #00bfff);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 12px 18px;
+            border: none;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            z-index: 9999;
+            transition: all 0.3s ease;
+        }
+
+        .music-btn:hover {
+            background: linear-gradient(135deg, #00bfff, #1e90ff);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
 <body>
     <div id="container"></div>
+
+    <audio id="bgMusic" autoplay loop>
+        <source src="Src/music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <button onclick="toggleMusic()" class="music-btn">
+        🎵 Toggle Music
+    </button>
+
+    <div id="welcome-screen" style="
+  position:fixed; top:0; left:0; width:100%; height:100%;
+  background:#000; color:#fff; display:flex;
+  justify-content:center; align-items:center;
+  font-size:2em; z-index:9999; cursor:pointer;">
+        Tap to Start Tour 🎧
+    </div>
+
     <script>
-       
+
 
         const viewer = new PANOLENS.Viewer({
             container: document.getElementById("container"),
@@ -37,26 +77,26 @@
             output: "console"
         });
 
-const RADIUS = 5000;
+        const RADIUS = 5000;
 
-window.addEventListener("click", (event) => {
-  const mouse = new THREE.Vector2(
-    (event.clientX / window.innerWidth) * 2 - 1,
-   -(event.clientY / window.innerHeight) * 2 + 1
-  );
+        window.addEventListener("click", (event) => {
+            const mouse = new THREE.Vector2(
+                (event.clientX / window.innerWidth) * 2 - 1,
+                -(event.clientY / window.innerHeight) * 2 + 1
+            );
 
-  const raycaster = new THREE.Raycaster();
-  raycaster.setFromCamera(mouse, viewer.camera);
+            const raycaster = new THREE.Raycaster();
+            raycaster.setFromCamera(mouse, viewer.camera);
 
-  const dir = raycaster.ray.direction.normalize();
-  const point = dir.clone().multiplyScalar(RADIUS);
+            const dir = raycaster.ray.direction.normalize();
+            const point = dir.clone().multiplyScalar(RADIUS);
 
-  const x = point.x.toFixed(0);
-  const y = point.y.toFixed(0);
-  const z = point.z.toFixed(0);
+            const x = point.x.toFixed(0);
+            const y = point.y.toFixed(0);
+            const z = point.z.toFixed(0);
 
-  console.log(`📍 Coordinates → X: ${x}, Y: ${y}, Z: ${z}`);
-});
+            console.log(`📍 Coordinates → X: ${x}, Y: ${y}, Z: ${z}`);
+        });
 
 
 
@@ -137,6 +177,40 @@ window.addEventListener("click", (event) => {
         /* ---------- 4.  Start tour on Scene 6 ---------- */
         viewer.setPanorama(panoramas[0]);
 
+        document.addEventListener("click", function startMusic() {
+            const bg = document.getElementById("bgMusic");
+            if (bg && bg.paused) {
+                bg.play();
+                console.log("✅ Music started");
+            }
+            document.removeEventListener("click", startMusic);  // only run once
+        });
+
+        function toggleMusic() {
+            const bg = document.getElementById("bgMusic");
+            if (bg.paused) {
+                bg.play();
+            } else {
+                bg.pause();
+            }
+        }
+
+        const music = document.getElementById("bgMusic");
+
+        document.getElementById("welcome-screen").addEventListener("click", () => {
+            music.play();                             // 🔊 This is now user-initiated
+            document.getElementById("welcome-screen").style.display = "none";
+        });
+
+
+        //   const music = document.getElementById("bgMusic"); // Your <audio id="bgMusic">
+        const welcomeBtn = document.getElementById("welcome-button");
+
+        welcomeBtn.addEventListener("click", () => {
+            music.volume = 1;        // optional fade in effect
+            music.play().catch(err => console.warn("Audio play failed:", err));
+            welcomeBtn.style.display = "none";
+        });
     </script>
 
 </body>
