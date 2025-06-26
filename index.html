@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>DSU Virtual Campus Tour</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/three@0.124.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/panolens@0.12.0/build/panolens.min.js"></script>
+    <style>
+        html,
+        body {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+        }
+
+        #container {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container"></div>
+    <script>
+       
+
+        const viewer = new PANOLENS.Viewer({
+            container: document.getElementById("container"),
+            autoHideInfospot: false,
+            cameraFov: 75,
+            controlBar: true,
+            output: "console"
+        });
+
+const RADIUS = 5000;
+
+window.addEventListener("click", (event) => {
+  const mouse = new THREE.Vector2(
+    (event.clientX / window.innerWidth) * 2 - 1,
+   -(event.clientY / window.innerHeight) * 2 + 1
+  );
+
+  const raycaster = new THREE.Raycaster();
+  raycaster.setFromCamera(mouse, viewer.camera);
+
+  const dir = raycaster.ray.direction.normalize();
+  const point = dir.clone().multiplyScalar(RADIUS);
+
+  const x = point.x.toFixed(0);
+  const y = point.y.toFixed(0);
+  const z = point.z.toFixed(0);
+
+  console.log(`📍 Coordinates → X: ${x}, Y: ${y}, Z: ${z}`);
+});
+
+
+
+        viewer.addUpdateCallback(() => {
+            const dir = viewer.camera.getWorldDirection(new THREE.Vector3());
+            const x = (dir.x * 5000).toFixed(0);
+            const y = (dir.y * 5000).toFixed(0);
+            const z = (dir.z * 5000).toFixed(0);
+            console.log(`Panolens Coordinates: (${x}, ${y}, ${z})`);
+        });
+
+
+        const panoramas = [];
+        for (let i = 6; i <= 23; i++) {
+            const pano = new PANOLENS.ImagePanorama(`Src/${i}.jpg`);
+            panoramas.push(pano);
+            viewer.add(pano);
+        }
+
+
+        const landmarkConfig = [
+  /* Scene 6.jpg */[
+                { x: 50, y: 197, z: 3547, text: "1 - Academic Block" },
+                { x: -1500, y: 500, z: -3800, text: "2 - Main Auditorium" }
+            ],
+  /* Scene 7.jpg  */[
+                { x: 1200, y: 800, z: -3500, text: "3 - Library" }
+            ],
+  /* Scene 8.jpg   */[],
+  /* Scene 9.jpg   */[],
+  /* Scene 10.jpg  */[],
+  /* Scene 11.jpg  */[],
+  /* Scene 12.jpg  */[],
+  /* Scene 13.jpg  */[],
+  /* Scene 14.jpg  */[],
+  /* Scene 15.jpg  */[],
+  /* Scene 16.jpg  */[],
+  /* Scene 17.jpg  */[],
+  /* Scene 18.jpg  */[],
+  /* Scene 19.jpg  */[],
+  /* Scene 20.jpg  */[],
+  /* Scene 21.jpg  */[],
+  /* Scene 22.jpg  */[],
+  /* Scene 23.jpg  */[]
+        ];
+
+        /* ----------   Add navigation arrows & landmarks ---------- */
+        panoramas.forEach((pano, idx) => {
+
+            /* ← Previous arrow */
+            if (idx > 0) {
+                const back = new PANOLENS.Infospot(300, PANOLENS.DataImage.Arrow);
+                back.position.set(-5000, 0, 0);
+                back.rotation.y = Math.PI;
+                back.addHoverText(`Back to Scene ${idx + 5}`);   // 5 = scene number before 6
+                back.addEventListener('click', () => viewer.setPanorama(panoramas[idx - 1]));
+                pano.add(back);
+            }
+
+            /* → Next arrow */
+            if (idx < panoramas.length - 1) {
+                const next = new PANOLENS.Infospot(300, PANOLENS.DataImage.Arrow);
+                next.position.set(4763, -708, 1346);
+                next.addHoverText(`Go to Scene ${idx + 7}`);    // +7 because first is 6
+                next.addEventListener('click', () => viewer.setPanorama(panoramas[idx + 1]));
+                pano.add(next);
+            }
+
+            /* ----- Landmarks for this scene ----- */
+            landmarkConfig[idx].forEach(({ x, y, z, text }) => {
+                const label = new PANOLENS.Infospot(350, PANOLENS.DataImage.Info);
+                label.position.set(x, y, z);
+                label.addHoverText(text);
+                pano.add(label);
+            });
+        });
+
+        /* ---------- 4.  Start tour on Scene 6 ---------- */
+        viewer.setPanorama(panoramas[0]);
+
+    </script>
+
+</body>
+
+</html>
